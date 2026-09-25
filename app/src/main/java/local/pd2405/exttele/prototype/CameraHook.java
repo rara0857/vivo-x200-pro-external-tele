@@ -19,6 +19,7 @@ import android.widget.Toast;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.WeakHashMap;
 import java.lang.ref.WeakReference;
@@ -1031,18 +1032,23 @@ public final class CameraHook implements IXposedHookLoadPackage {
                                 : limitedVideo
                                 ? Arrays.asList(200f, 400f, 600f, 800f)
                                 : Arrays.asList(200f, 400f, 600f, 800f, 1080f)
-                                : photoMacro ? Arrays.asList(200f, 400f, 540f, 800f, 1080f)
-                                : proPhoto ? Arrays.asList(200f, 400f, 540f)
-                                : Arrays.asList(200f, 400f, 800f, 1600f, 3200f, 5400f));
+                                : photoMacro
+                                ? Arrays.asList(200f, 230f, 400f, 460f, 540f, 800f, 1080f)
+                                : proPhoto ? Arrays.asList(200f, 230f, 400f, 460f, 540f)
+                                : Arrays.asList(200f, 230f, 400f, 460f,
+                                        800f, 1600f, 3200f, 5400f));
                         XposedHelpers.callMethod(modelContext, "setRealZoomRulerList", video
                                 ? isStageVideo()
                                 ? Arrays.asList(3.7f, 7.4f, 11.1f, 14.8f, 30f)
                                 : limitedVideo
                                 ? Arrays.asList(3.7f, 7.4f, 11.1f, 14.8f)
                                 : Arrays.asList(3.7f, 7.4f, 11.1f, 14.8f, 20f)
-                                : photoMacro ? Arrays.asList(3.7f, 7.4f, 10f, 14.8f, 20f)
-                                : proPhoto ? Arrays.asList(3.7f, 7.4f, 10f)
-                                : Arrays.asList(3.7f, 7.4f, 14.8f, 29.6f, 59.2f, 99.9f));
+                                : photoMacro
+                                ? Arrays.asList(3.7f, 4.255f, 7.4f, 8.51f, 10f, 14.8f, 20f)
+                                : proPhoto
+                                ? Arrays.asList(3.7f, 4.255f, 7.4f, 8.51f, 10f)
+                                : Arrays.asList(3.7f, 4.255f, 7.4f, 8.51f,
+                                        14.8f, 29.6f, 59.2f, 99.9f));
                         XposedHelpers.callMethod(modelContext, "setSpecialZoomRulerList",
                                 new HashSet<Float>());
                         XposedBridge.log("PD2405ExtTele: ruler nodes " + (video
@@ -1051,9 +1057,9 @@ public final class CameraHook implements IXposedHookLoadPackage {
                                 : limitedVideo
                                 ? "200/400/600/800 mm (15x video ceiling)"
                                 : "200/400/600/800/1080 mm (video)"
-                                : photoMacro ? "200/400/540/800/1080 mm (photo macro)"
-                                : proPhoto ? "200/400/540 mm (pro photo)"
-                                : "200/400/800/1600/3200/5400 mm"));
+                                : photoMacro ? "200/230/400/460/540/800/1080 mm (photo macro)"
+                                : proPhoto ? "200/230/400/460/540 mm (pro photo)"
+                                : "200/230/400/460/800/1600/3200/5400 mm"));
                     }
                 });
         XposedHelpers.findAndHookMethod(
@@ -1070,9 +1076,37 @@ public final class CameraHook implements IXposedHookLoadPackage {
                                         ? Arrays.asList(200f, 400f, 600f, 800f)
                                         : Arrays.asList(200f, 400f, 600f, 800f, 1080f)
                                         : isPhotoMacroActive()
-                                        ? Arrays.asList(200f, 400f, 540f, 800f, 1080f)
-                                        : isAdvancedPhoto() ? Arrays.asList(200f, 400f, 540f)
-                                        : Arrays.asList(200f, 400f, 800f, 1600f, 3200f, 5400f));
+                                        ? Arrays.asList(200f, 230f, 400f, 460f, 540f, 800f, 1080f)
+                                        : isAdvancedPhoto()
+                                        ? Arrays.asList(200f, 230f, 400f, 460f, 540f)
+                                        : Arrays.asList(200f, 230f, 400f, 460f,
+                                                800f, 1600f, 3200f, 5400f));
+                    }
+                });
+        XposedHelpers.findAndHookMethod(
+                "com.android.camera.ui.commonui.zoomui.widget.ZoomCircleRuler", loader,
+                "drawZoomText", Canvas.class, String.class, float.class,
+                new XC_MethodHook() {
+                    @Override protected void beforeHookedMethod(MethodHookParam param) {
+                        if (!virtualActive.get() || !nativeZoomRequested.get()
+                                || videoVirtualActive.get()) return;
+                        String label = (String) param.args[1];
+                        if ("230".equals(label) || "460".equals(label))
+                            param.setResult(null);
+                    }
+                });
+        XposedHelpers.findAndHookMethod(
+                "com.android.camera.ui.commonui.zoomui.model.ScrollRulerModel", loader,
+                "initVibratorZooms", new XC_MethodHook() {
+                    @Override protected void afterHookedMethod(MethodHookParam param) {
+                        if (!virtualActive.get() || !nativeZoomRequested.get()
+                                || videoVirtualActive.get() || isTwoPointStill()) return;
+                        Object context = XposedHelpers.getObjectField(param.thisObject, "mContext");
+                        Object values = XposedHelpers.callMethod(context,
+                                "getRealZoomRulerList");
+                        if (values instanceof List && !((List<?>) values).isEmpty())
+                            XposedHelpers.setObjectField(param.thisObject,
+                                    "mNeedPlayVibratorZooms", new ArrayList<>((List<?>) values));
                     }
                 });
         XposedHelpers.findAndHookMethod(

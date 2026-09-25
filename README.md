@@ -1,6 +1,6 @@
 # X200 Pro 增距鏡輔助模組（PD2405）
 
-這是針對 **vivo X200 Pro／PD2405** 原廠相機做的實驗性移植。配套有兩個安裝檔：LSPosed／Vector APK v1.99 與 KernelSU ZIP v1.12。請從 [Releases](https://github.com/rara0857/vivo-x200-pro-external-tele/releases) 下載同一組版本，不要混用舊版。v1.12 保留原地更新時清除舊控制器的修正，並讓非固定焦段的 EXIF 與 ZEISS 邊框依同張照片的變焦倍率換算；v1.99 讓拍照轉盤焦距標籤採用四捨五入。200、320、400、540、800、3200 mm 等已驗證焦段沿用固定標示。
+這是針對 **vivo X200 Pro／PD2405** 原廠相機做的實驗性移植。配套有兩個安裝檔：LSPosed／Vector APK v1.100 與 KernelSU ZIP v1.12。請從 [Releases](https://github.com/rara0857/vivo-x200-pro-external-tele/releases) 下載同一組版本，不要混用舊版。v1.12 保留原地更新時清除舊控制器的修正，並讓非固定焦段的 EXIF 與 ZEISS 邊框依同張照片的變焦倍率換算；v1.99 起拍照轉盤焦距標籤採用四捨五入；v1.100 在拍照轉盤加入不顯示數字的 230、460 mm 定位點，經實機確認可震動並停靠。增距拍照轉盤的震動只對應實際定位點。200、320、400、540、800、3200 mm 等已驗證焦段沿用固定標示。
 
 APK 在 `com.android.camera` 中提供增距鏡焦段介面、預覽與成片的 180° 方向處理，以及拍照資訊的等效焦距標示。KernelSU 模組處理 OIS 增益命令和 ZEISS 邊框的焦距標示；兩者以相機的短時狀態訊號配合。這些功能使用原廠相機與長焦鏡頭，**沒有移植 X300 Pro 的外接鏡 HAL、鏡片校正或專用 EIS**。
 

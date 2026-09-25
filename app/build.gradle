@@ -7,8 +7,8 @@ android {
         applicationId 'local.pd2405.exttele.prototype'
         minSdk 33
         targetSdk 35
-        versionCode 109
-        versionName '1.99-rounded-photo-ruler'
+        versionCode 110
+        versionName '1.100-photo-ruler-guides'
     }
 }
 
