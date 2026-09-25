@@ -7,8 +7,8 @@ android {
         applicationId 'local.pd2405.exttele.prototype'
         minSdk 33
         targetSdk 35
-        versionCode 107
-        versionName '1.97-fixed-focal-labels-3200'
+        versionCode 109
+        versionName '1.99-rounded-photo-ruler'
     }
 }
 

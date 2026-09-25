@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Canvas;
 import android.graphics.SurfaceTexture;
 import android.os.SystemClock;
 import android.hardware.camera2.CaptureRequest;
@@ -831,6 +832,8 @@ public final class CameraHook implements IXposedHookLoadPackage {
                 "com.android.camera.storage_ext.util.exifs.ExifInterface", loader);
         int equivalentTag = (Integer) XposedHelpers.getStaticObjectField(
                 exifClass, "TAG_FOCAL_LENGTH_IN_35_MM_FILE");
+        int digitalZoomTag = (Integer) XposedHelpers.getStaticObjectField(
+                exifClass, "TAG_DIGITAL_ZOOM_RATIO");
         XposedHelpers.findAndHookMethod(
                 "com.android.camera.storage_ext.util.exifs.ExifWriter", loader,
                 "exitUpdateExif", new XC_MethodHook() {
@@ -849,7 +852,7 @@ public final class CameraHook implements IXposedHookLoadPackage {
                             int original = (Integer) XposedHelpers.callMethod(oldTag,
                                     "getValueAsInt", 0);
                             if (original <= 0 || original > 10000) return;
-                            int corrected = nominalStillFocal(original);
+                            int corrected = nominalStillFocal(exif, digitalZoomTag, original);
                             Object newTag = XposedHelpers.callMethod(exif, "buildTag",
                                     equivalentTag, Short.valueOf((short) corrected));
                             if (newTag == null) return;
@@ -869,16 +872,40 @@ public final class CameraHook implements IXposedHookLoadPackage {
                 });
     }
 
-    /** Match the stock fixed tele steps to their displayed converter labels. */
-    private static int nominalStillFocal(int stockMm) {
+    /** Use the JPEG's own zoom tag for continuous positions, not the current UI
+     *  zoom, which may already belong to the next shot in a burst. */
+    private static int nominalStillFocal(Object exif, int digitalZoomTag, int stockMm) {
         switch (stockMm) {
             case 135: return 320;
             case 170: return 400;
             case 230: return 540;
             case 340: return 800;
             case 1362: return 3200;
-            default: return Math.round(stockMm * 2.35f);
+            default: break;
         }
+        try {
+            Object tag = XposedHelpers.callMethod(exif, "getTag", digitalZoomTag);
+            if (tag != null) {
+                Object rational = XposedHelpers.callMethod(tag, "getValueAsRational", 0L);
+                long numerator = ((Number) XposedHelpers.callMethod(
+                        rational, "getNumerator")).longValue();
+                long denominator = ((Number) XposedHelpers.callMethod(
+                        rational, "getDenominator")).longValue();
+                if (denominator > 0) {
+                    double zoom = (double) numerator / denominator;
+                    double expectedStock = 85.0 * zoom / 3.7;
+                    // A non-tele, stale or malformed tag must not relabel this JPEG.
+                    if (zoom >= 3.7 && zoom <= 100.0
+                            && Math.abs(stockMm - expectedStock)
+                                    <= Math.max(2.0, expectedStock * 0.005)) {
+                        return (int) Math.round(200.0 * zoom / 3.7);
+                    }
+                }
+            }
+        } catch (Throwable ignored) {
+            // Keep the previously verified nominal conversion as a fallback.
+        }
+        return Math.round(stockMm * 2.35f);
     }
 
     /** Adjust the per-capture watermark zoom only, leaving normal zoom settings alone. */
@@ -915,6 +942,22 @@ public final class CameraHook implements IXposedHookLoadPackage {
     private void installNativeFocalZoomUi(ClassLoader loader) {
         Class<?> settingManagerClass = XposedHelpers.findClass(
                 "com.android.camera.setting.api.ISettingManager", loader);
+        // Stock ruler truncates its floating focal value when drawing the
+        // large label. The button and saved photo round the same value.
+        XposedHelpers.findAndHookMethod(
+                "com.android.camera.ui.commonui.zoomui.widget.ZoomCircleRuler", loader,
+                "drawCurrentZoom", Canvas.class, float.class, new XC_MethodHook() {
+                    @Override protected void beforeHookedMethod(MethodHookParam param) {
+                        if (!virtualActive.get() || !nativeZoomRequested.get()
+                                || videoVirtualActive.get()) return;
+                        int style = ((Number) XposedHelpers.getObjectField(
+                                param.thisObject, "mCurrentZoomShowStyle")).intValue();
+                        if (style != 2) return;
+                        float focal = ((Number) param.args[1]).floatValue();
+                        if (Float.isFinite(focal) && focal >= 200f && focal <= 5400f)
+                            param.args[1] = (float) Math.round(focal);
+                    }
+                });
         XposedHelpers.findAndHookMethod(
                 "com.android.camera.ui.commonui.zoomui.ZoomUtil", loader,
                 "getZoomShowStyle", settingManagerClass, new XC_MethodHook() {
