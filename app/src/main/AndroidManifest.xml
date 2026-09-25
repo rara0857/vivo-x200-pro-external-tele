@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:label="PD2405 virtual external tele UI" android:hasCode="true">
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposeddescription" android:value="Experimental focal-step UI and 180-degree preview/JPEG orientation using stock Photo; no external HAL or OIS/EIS port" />
+        <meta-data android:name="xposedminversion" android:value="82" />
+        <meta-data android:name="xposedscope" android:value="com.android.camera" />
+    </application>
+</manifest>

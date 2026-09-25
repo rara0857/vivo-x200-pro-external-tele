@@ -1,0 +1,15 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'local.pd2405.exttele.prototype'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'local.pd2405.exttele.prototype'
+        minSdk 33
+        targetSdk 35
+        versionCode 107
+        versionName '1.97-fixed-focal-labels-3200'
+    }
+}
+
+dependencies { compileOnly project(':xposed-api-stubs') }

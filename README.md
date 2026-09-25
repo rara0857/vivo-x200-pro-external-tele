@@ -1,0 +1,27 @@
+# X200 Pro 增距鏡輔助模組（PD2405）
+
+這是針對 **vivo X200 Pro／PD2405** 原廠相機做的實驗性移植。配套有兩個安裝檔：LSPosed／Vector APK v1.97 與 KernelSU ZIP v1.10。請從 [Releases](https://github.com/rara0857/vivo-x200-pro-external-tele/releases) 下載同一組版本，不要混用舊版。
+
+APK 在 `com.android.camera` 中提供增距鏡焦段介面、預覽與成片的 180° 方向處理，以及拍照資訊的等效焦距標示。KernelSU 模組處理 OIS 增益命令和 ZEISS 邊框的焦距標示；兩者以相機的短時狀態訊號配合。這些功能使用原廠相機與長焦鏡頭，**沒有移植 X300 Pro 的外接鏡 HAL、鏡片校正或專用 EIS**。
+
+## 相容範圍與實測界線
+
+- 僅針對 `ro.product.vendor.device=PD2405`、原廠 Camera **13.0.47.271** 與目前程式內指定的原廠函式庫版本。KernelSU 服務在裝置型號或函式庫 SHA-256 不符時拒絕啟動相應控制器。系統或相機更新後應重新驗證。
+- 使用者已在手機上驗證焦距邊框與相片資訊的 200、400、540、800、3200 mm 標示，以及模式切換與退出後還原。這些數字是**等效焦距標示**，不代表鏡片光學焦距或成像倍率已被實物測量。
+- A／B 模式可對原生 OIS 路徑發出增益命令；C 模式向 Camera2 送出與原廠專業拍照模式相同的 OIS OFF 請求。紀錄與命令成功不等同於已量測 OIS 致動器的實際位移或防抖效果。
+- **尚未以實體 vivo G2 增距鏡做裝鏡、光軸與畫質驗證。** 各種第三方手機殼、17 mm 轉接環也未驗證同軸精度或承重。
+
+## 安裝與使用
+
+1. 安裝 Release 中的 APK，在 LSPosed 或 Vector 啟用模組，作用範圍選擇 `com.android.camera`，然後重啟相機。APK 本身不需要安裝第三方相機。
+2. 以 KernelSU 安裝配套 ZIP，依管理器提示重啟。此模組需要可用的 Root／KernelSU 環境；只有 APK 時沒有原生 OIS 增益與邊框修正。臨時 Root 的模組掛載、服務與重啟行為取決於實際 Root 環境。
+3. 在原廠相機切入增距介面並使用長焦。長按外接鏡標誌依序切換 **A 固定 2.35 倍 → B AF 公式 → C 原廠 OIS OFF 請求 → 關閉／原廠值**。離開相應模式時，控制器會要求恢復原廠增益；C 的 OIS OFF 請求也會解除。
+4. B 每 33 ms 讀取一次 AF 值；AF 與上次成功送出的值相差**超過 500** 時才更新，公式為 `(2309.5 + 0.0423 × AF) / 1000`。這是借用的係數，未針對 PD2405 或 G2 重新校準。
+
+模組不覆蓋 `system`、`vendor`、`odm`、`boot` 或校準分區。要還原，先在相機切回「關閉／原廠值」並退出增距模式，再於 LSPosed／Vector 停用 APK、於 KernelSU 停用或移除 ZIP，依管理器要求重啟。若相機無法正常啟動，可先在管理器停用模組後重啟。
+
+## 原始碼與授權
+
+`app/` 是 LSPosed APK；`kernelSU/` 是 ZIP 的腳本、JavaScript 與兩個原生控制器的 C 原始碼。APK 可用 Android Gradle Plugin 8.5.2 與 Android SDK 35 建置。ZIP 中的 `watermark_controller` 靜態連結 Frida 17.18.0；Frida 不屬於本專案的 MIT 授權，請參閱 [第三方授權說明](THIRD_PARTY_NOTICES.md)。本專案未包含 vivo 韌體或相機 APK。
+
+本專案與 vivo、ZEISS 無官方關係。軟體以 [MIT 授權](LICENSE)公開。
