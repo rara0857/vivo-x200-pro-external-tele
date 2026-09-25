@@ -1033,10 +1033,11 @@ public final class CameraHook implements IXposedHookLoadPackage {
                                 ? Arrays.asList(200f, 400f, 600f, 800f)
                                 : Arrays.asList(200f, 400f, 600f, 800f, 1080f)
                                 : photoMacro
-                                ? Arrays.asList(200f, 230f, 400f, 460f, 540f, 800f, 1080f)
+                                ? Arrays.asList(200f, 230f, 400f, 460f, 540f,
+                                        690f, 800f, 920f, 1080f)
                                 : proPhoto ? Arrays.asList(200f, 230f, 400f, 460f, 540f)
-                                : Arrays.asList(200f, 230f, 400f, 460f,
-                                        800f, 1600f, 3200f, 5400f));
+                                : Arrays.asList(200f, 230f, 400f, 460f, 690f,
+                                        800f, 920f, 1150f, 1600f, 3200f, 5400f));
                         XposedHelpers.callMethod(modelContext, "setRealZoomRulerList", video
                                 ? isStageVideo()
                                 ? Arrays.asList(3.7f, 7.4f, 11.1f, 14.8f, 30f)
@@ -1044,11 +1045,12 @@ public final class CameraHook implements IXposedHookLoadPackage {
                                 ? Arrays.asList(3.7f, 7.4f, 11.1f, 14.8f)
                                 : Arrays.asList(3.7f, 7.4f, 11.1f, 14.8f, 20f)
                                 : photoMacro
-                                ? Arrays.asList(3.7f, 4.255f, 7.4f, 8.51f, 10f, 14.8f, 20f)
+                                ? Arrays.asList(3.7f, 4.255f, 7.4f, 8.51f, 10f,
+                                        12.765f, 14.8f, 17.02f, 20f)
                                 : proPhoto
                                 ? Arrays.asList(3.7f, 4.255f, 7.4f, 8.51f, 10f)
-                                : Arrays.asList(3.7f, 4.255f, 7.4f, 8.51f,
-                                        14.8f, 29.6f, 59.2f, 99.9f));
+                                : Arrays.asList(3.7f, 4.255f, 7.4f, 8.51f, 12.765f,
+                                        14.8f, 17.02f, 21.275f, 29.6f, 59.2f, 99.9f));
                         XposedHelpers.callMethod(modelContext, "setSpecialZoomRulerList",
                                 new HashSet<Float>());
                         XposedBridge.log("PD2405ExtTele: ruler nodes " + (video
@@ -1057,9 +1059,9 @@ public final class CameraHook implements IXposedHookLoadPackage {
                                 : limitedVideo
                                 ? "200/400/600/800 mm (15x video ceiling)"
                                 : "200/400/600/800/1080 mm (video)"
-                                : photoMacro ? "200/230/400/460/540/800/1080 mm (photo macro)"
+                                : photoMacro ? "200/230/400/460/540/690/800/920/1080 mm (photo macro)"
                                 : proPhoto ? "200/230/400/460/540 mm (pro photo)"
-                                : "200/230/400/460/800/1600/3200/5400 mm"));
+                                : "200/230/400/460/690/800/920/1150/1600/3200/5400 mm"));
                     }
                 });
         XposedHelpers.findAndHookMethod(
@@ -1076,11 +1078,12 @@ public final class CameraHook implements IXposedHookLoadPackage {
                                         ? Arrays.asList(200f, 400f, 600f, 800f)
                                         : Arrays.asList(200f, 400f, 600f, 800f, 1080f)
                                         : isPhotoMacroActive()
-                                        ? Arrays.asList(200f, 230f, 400f, 460f, 540f, 800f, 1080f)
+                                        ? Arrays.asList(200f, 230f, 400f, 460f, 540f,
+                                                690f, 800f, 920f, 1080f)
                                         : isAdvancedPhoto()
                                         ? Arrays.asList(200f, 230f, 400f, 460f, 540f)
-                                        : Arrays.asList(200f, 230f, 400f, 460f,
-                                                800f, 1600f, 3200f, 5400f));
+                                        : Arrays.asList(200f, 230f, 400f, 460f, 690f,
+                                                800f, 920f, 1150f, 1600f, 3200f, 5400f));
                     }
                 });
         XposedHelpers.findAndHookMethod(
@@ -1091,7 +1094,9 @@ public final class CameraHook implements IXposedHookLoadPackage {
                         if (!virtualActive.get() || !nativeZoomRequested.get()
                                 || videoVirtualActive.get()) return;
                         String label = (String) param.args[1];
-                        if ("230".equals(label) || "460".equals(label))
+                        if ("230".equals(label) || "460".equals(label)
+                                || "690".equals(label) || "920".equals(label)
+                                || "1150".equals(label))
                             param.setResult(null);
                     }
                 });
