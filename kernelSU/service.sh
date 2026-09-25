@@ -13,6 +13,27 @@ start_daemon() {
   DAEMON_PIDFILE="$2"
   DAEMON_LOG="$3"
   DAEMON_ARG="$4"
+  # In-place module updates can unlink the old executable while its process
+  # keeps running. The pidfile then points only at the new process, leaving two
+  # watermark hooks (or OIS controllers) active against the same camera.
+  DAEMON_NAME=${DAEMON_BIN##*/}
+  for DAEMON_STALE in $(pidof "$DAEMON_NAME" 2>/dev/null); do
+    DAEMON_PROC=/proc/$DAEMON_STALE/exe
+    DAEMON_FOUND=$(readlink "$DAEMON_PROC" 2>/dev/null)
+    if [ "$DAEMON_FOUND" != "$DAEMON_BIN (deleted)" ]; then continue; fi
+    echo "Stopping replaced $DAEMON_BIN pid $DAEMON_STALE" >> "$DAEMON_LOG"
+    kill -TERM "$DAEMON_STALE" 2>/dev/null
+    DAEMON_COUNT=0
+    while [ "$(readlink "$DAEMON_PROC" 2>/dev/null)" = "$DAEMON_BIN (deleted)" ] &&
+          [ "$DAEMON_COUNT" -lt 20 ]; do
+      sleep 0.1
+      DAEMON_COUNT=$((DAEMON_COUNT + 1))
+    done
+    if [ "$(readlink "$DAEMON_PROC" 2>/dev/null)" = "$DAEMON_BIN (deleted)" ]; then
+      echo "Refusing: replaced daemon $DAEMON_STALE did not exit" >> "$DAEMON_LOG"
+      return 1
+    fi
+  done
   if [ -f "$DAEMON_PIDFILE" ]; then
     DAEMON_OLD=$(cat "$DAEMON_PIDFILE")
     if kill -0 "$DAEMON_OLD" 2>/dev/null &&

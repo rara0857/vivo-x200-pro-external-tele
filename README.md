@@ -1,6 +1,6 @@
 # X200 Pro 增距鏡輔助模組（PD2405）
 
-這是針對 **vivo X200 Pro／PD2405** 原廠相機做的實驗性移植。配套有兩個安裝檔：LSPosed／Vector APK v1.97 與 KernelSU ZIP v1.10。請從 [Releases](https://github.com/rara0857/vivo-x200-pro-external-tele/releases) 下載同一組版本，不要混用舊版。
+這是針對 **vivo X200 Pro／PD2405** 原廠相機做的實驗性移植。配套有兩個安裝檔：LSPosed／Vector APK v1.97 與 KernelSU ZIP v1.11。請從 [Releases](https://github.com/rara0857/vivo-x200-pro-external-tele/releases) 下載同一組版本，不要混用舊版。v1.11 會清除原地更新後殘留的舊控制器；v1.10 若同時運行兩組控制器，可能重複換算邊框焦距並干擾連拍浮水印。
 
 APK 在 `com.android.camera` 中提供增距鏡焦段介面、預覽與成片的 180° 方向處理，以及拍照資訊的等效焦距標示。KernelSU 模組處理 OIS 增益命令和 ZEISS 邊框的焦距標示；兩者以相機的短時狀態訊號配合。這些功能使用原廠相機與長焦鏡頭，**沒有移植 X300 Pro 的外接鏡 HAL、鏡片校正或專用 EIS**。
 

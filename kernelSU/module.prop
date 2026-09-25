@@ -1,6 +1,6 @@
 id=pd2405_exttele_ois_trial
 name=PD2405 External Tele OIS and Watermark Trial
-version=1.10
-versionCode=11
+version=1.11
+versionCode=12
 author=local
-description=X200 Pro external-tele OIS A/B plus Camera-bridge C OIS OFF; ZEISS border fixed-step focal labels and post-capture grace; no vendor/system overlay.
+description=X200 Pro external-tele OIS and ZEISS border; clears replaced controllers after in-place updates to prevent duplicate hooks.
